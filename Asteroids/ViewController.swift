@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  AstroidViewController.swift
 //  Asteroids
 //
 //  Created by Chase McElroy on 5/11/17.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class AstroidViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
