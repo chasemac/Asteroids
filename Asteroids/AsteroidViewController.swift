@@ -11,6 +11,7 @@ import UIKit
 class AsteroidViewController: UIViewController {
     
     private var asteroidField: AsteroidFieldView!
+    private var ship: SpaceshipView!
     
     private var asteroidBehavior = AsteroidBehavior()
     
@@ -20,25 +21,53 @@ class AsteroidViewController: UIViewController {
         super.viewDidAppear(animated)
         initializeIfNeeded()
         animator.addBehavior(asteroidBehavior)
+        asteroidBehavior.pushAllASteroids()
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         animator.removeBehavior(asteroidBehavior)
     }
-
+    
     private func initializeIfNeeded() {
         if asteroidField == nil {
             asteroidField = AsteroidFieldView(frame: CGRect(center: view.bounds.mid, size: view.bounds.size))
             view.addSubview(asteroidField)
-            asteroidField.addAsteroids(count: Constants.initialAsteroidCount)
-            
+            let shipSize = view.bounds.size.minEdge * Constants.shipSizeToMinBoundsEdgeRatio
+            ship = SpaceshipView(frame: CGRect(squareCenteredAt: asteroidField.center, size: shipSize))
+            view.addSubview(ship)
+            repostionShip()
+            asteroidField.asteroidBehavior = asteroidBehavior
+            asteroidField.addAsteroids(count: Constants.initialAsteroidCount, exclusionZone: ship.convert(ship.bounds, to: asteroidField))
         }
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         asteroidField?.center = view.bounds.mid
+        repostionShip()
+    }
+    
+    private func repostionShip() {
+        if asteroidField != nil {
+            ship.center = asteroidField.center
+            asteroidBehavior.setBoundary(ship.shieldBoundary(in: asteroidField), named: Constants.shipBoundaryName) { [weak self] in
+                if let ship = self?.ship {
+                    if !ship.shieldIsActive {
+                        ship.shieldIsActive = true
+                        ship.shieldLevel -= Constants.Shield.activationCost
+                        Timer.scheduledTimer(withTimeInterval: Constants.Shield.duration, repeats: false, block: { (timer) in
+                            ship.shieldIsActive = false
+                            if ship.shieldLevel == 0 {
+                                ship.shieldLevel = 100
+                            }
+                        })
+                        
+                    }
+                }
+            }
+        }
     }
     
     // MARK: Constants
@@ -74,8 +103,8 @@ class AsteroidViewController: UIViewController {
             .unknown : CGPoint(x: 0.5, y: 0.5)
         ]
     }
-
-
-
+    
+    
+    
 }
 
