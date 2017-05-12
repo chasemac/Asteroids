@@ -32,7 +32,7 @@ class AsteroidViewController: UIViewController {
     
     private func initializeIfNeeded() {
         if asteroidField == nil {
-            asteroidField = AsteroidFieldView(frame: CGRect(center: view.bounds.mid, size: view.bounds.size))
+            asteroidField = AsteroidFieldView(frame: CGRect(center: view.bounds.mid, size: view.bounds.size * Constants.asteroidFieldMagnitude))
             view.addSubview(asteroidField)
             let shipSize = view.bounds.size.minEdge * Constants.shipSizeToMinBoundsEdgeRatio
             ship = SpaceshipView(frame: CGRect(squareCenteredAt: asteroidField.center, size: shipSize))
@@ -70,6 +70,27 @@ class AsteroidViewController: UIViewController {
         }
     }
     
+    @IBAction func burn(_ sender: UILongPressGestureRecognizer) {
+        switch sender.state {
+        case .began,.changed:
+            ship.direction = (sender.location(in: view) - ship.center).angle
+            burn()
+        case .ended:
+            endBurn()
+        default: break
+        }
+    }
+    
+    private func burn() {
+    ship.enginesAreFiring = true
+        asteroidBehavior.acceleration.angle = ship.direction - CGFloat.pi
+        asteroidBehavior.acceleration.magnitude = Constants.burnAcceleration
+    }
+    
+    private func endBurn() {
+        ship.enginesAreFiring = false
+        asteroidBehavior.acceleration.magnitude = 0
+    }
     // MARK: Constants
     
     private struct Constants {
